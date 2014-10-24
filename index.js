@@ -17,6 +17,7 @@
 }(this, function(root, Filetable, _, $) {
 
     $.prototype.filetable = function(options) {
+        this.append("<table></table>");
         return this;
     };
 
