@@ -101,9 +101,9 @@ describe("$.prototype.filetable", function() {
                 $el.filetable(options);
             });
 
-            var confirmDataOptionObject = function() {
-                $el.find("tbody tr").length.should.be.eql(options.rows.length);
-                options.rows.forEach(function(data, index) {
+            var confirmDataOptionObject = function(rows) {
+                $el.find("tbody tr").length.should.be.eql(rows.length);
+                rows.forEach(function(data, index) {
                     var $row = $($el.find("table tbody tr")[index]);
                     $row.find("td").length.should.be.eql(col_keys.length);
                     _.keys(data).forEach(function(key) {
@@ -112,8 +112,24 @@ describe("$.prototype.filetable", function() {
                 });
             };
 
+            it("render with folder/file icons", function() {
+                var opts = _.clone(options);
+                opts.rows = [
+                    {name: "Ramsey", alias: "Superman", operator: "Kryptonite"}, // no children
+                    {name: "Test parent", alias: "Parent", operator: "test", rows: [{}]} // has children
+                ];
+                opts.icons = {
+                    folder: '<i class="myfolderIcon"></i>',
+                    file: '<i class="myfileIcon"></i>'
+                };
+                $el.filetable(opts);
+                ($el.html().indexOf($el.fileTableOptions.icons.folder) != -1).should.be.true;
+                ($el.html().indexOf($el.fileTableOptions.icons.file) != -1).should.be.true;
+            });
+
             it("with header option and of type array of objects", function() {
-                confirmDataOptionObject();
+                $el.filetable(options);
+                confirmDataOptionObject(options.rows);
             });
 
             it("with no header option and of type array of arrays", function() {
@@ -137,7 +153,7 @@ describe("$.prototype.filetable", function() {
                     return options.rows;
                 }
                 $el.filetable(opts);
-                confirmDataOptionObject();
+                confirmDataOptionObject(options.rows);
             });
 
             it("of type function that returns callback", function(done) {

@@ -18,31 +18,42 @@
 
     $.prototype.filetable = function(options) {
 
+        var defaultIcons = {
+            folderOpen: "<i class='fa fa-folder-o'></i>",
+            folder: "<i class='fa fa-folder'></i>",
+            file: "<i class='fa fa-file-o'></i>"
+        };
+
+        options = _.defaults(options || {}, {
+            loading: {
+                class: "loading",
+                html: "Loading ..."
+            },
+            icons: defaultIcons,
+            class: "filetable",
+            rows: []
+        });
+
         var that = this,
-            table = $("<table><thead></thead><tbody></tbody></table>"),
+            table = $("<table class='"+options.class+"'><thead></thead><tbody></tbody></table>"),
             thead = table.find("thead"),
             tbody = table.find("tbody"),
             rows,
             colspan = 1,
             loadingHtml,
-            col_keys,
-            options = options || {};
+            col_keys;
 
-        _.defaults(options, {
-            loading: {
-                class: "loading",
-                html: "Loading ..."
-            },
-            folderOpenIcon: $("<i class='fa fa-folder-o'></i>"),
-            folderIcon: $("<i class='fa fa-folder'></i>"),
-            fileIcon: $("<i class='fa fa-file'></i>"),
-            rows: []
-        });
-
-        var getRow = function(cols) {
+        var appendRow = function(cols, hasChildren) {
             var row = $("<tr></tr>");
+            var firstRow = true;
             cols.forEach(function(col) {
-                row.append("<td>"+col+"</td>");
+                var td = "<td>";
+                if (firstRow) {
+                    td += hasChildren ? options.icons.folder : options.icons.file;
+                    firstRow = false;
+                }
+                td += col+"</td>";
+                row.append(td);
             });
             return row;
         };
@@ -61,6 +72,7 @@
                         row = _.values(rowData);
                         colspan = row.length;
                     }
+                    row.rows = rowData.rows; // attach child rows
                     rows.push(row);
                 } else {
                     throw new Error("data should contain object or array");
@@ -85,7 +97,7 @@
             if (rows && rows.length > 0) {
                 rows.forEach(function(row) {
                     hideLoading();
-                    var $row = getRow(row);
+                    var $row = appendRow(row, !!row.rows);
                     $parent.append($row);
                     if (typeof options.onRenderRow == "function") {
                         options.onRenderRow.apply(this, $row);
@@ -135,13 +147,6 @@
         } else {
             // Without header
             attachRows(options.rows, col_keys, tbody);
-        }
-
-        // Attach class
-        if (typeof options.class == "string") {
-            table.attr("class", options.class);
-        } else if (!!options.class)  {
-            throw new Error("class should be a string");
         }
 
         this.fileTableOptions = options;
