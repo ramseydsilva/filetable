@@ -33,6 +33,9 @@
                 class: "loading",
                 html: "Loading ..."
             },
+            folderOpenIcon: $("<i class='fa fa-folder-o'></i>"),
+            folderIcon: $("<i class='fa fa-folder'></i>"),
+            fileIcon: $("<i class='fa fa-file'></i>"),
             rows: []
         });
 
@@ -66,39 +69,6 @@
             return rows;
         };
 
-        var getRows = function(data, col_keys, callback) {
-            if (typeof data == "object" && data.length > 0) {
-                callback(getRowData(data, col_keys));
-            } else if (typeof data == "function") {
-                var data = data(function(data) {
-                    // our callback function
-                    callback(getRowData(data, col_keys));
-                });
-                if (typeof data != "undefined") {
-                    callback(getRowData(data, col_keys));
-                }
-            } else if (data && data.length !== 0) {
-                throw new Error("data should be array or function")
-            }
-            callback([]);
-        };
-
-        var attachRowsToParent = function($parent, rows, renderCallback) {
-            if (rows.length == 0) {
-                // no data message
-            } else {
-                rows.forEach(function(row) {
-                    hideLoading();
-
-                    var $row = getRow(row);
-                    $parent.append($row);
-                    if (typeof renderCallback == "function") {
-                        renderCallback.apply(this, $row);
-                    }
-                });
-            }
-        };
-
         var showLoading = function() {
             if (options.loading) {
                 loadingHtml = $("<tr class='"+(options.loading.class && options.loading.class)+"'><td colspan='"
@@ -111,11 +81,37 @@
             loadingHtml = loadingHtml && loadingHtml.remove() && false;
         };
 
-        var attachRowsCallback = function(rows) {
+        var attachRowsCallback = function($parent, rows) {
             if (rows && rows.length > 0) {
-                attachRowsToParent(tbody, rows, options.onRenderRow);
+                rows.forEach(function(row) {
+                    hideLoading();
+                    var $row = getRow(row);
+                    $parent.append($row);
+                    if (typeof options.onRenderRow == "function") {
+                        options.onRenderRow.apply(this, $row);
+                    }
+                });
+            } else {
+                // TODO: No data message
             }
         }
+
+        var attachRows = function(data, col_keys, $parent) {
+            if (typeof data == "object" && data.length > 0) {
+                attachRowsCallback($parent, getRowData(data, col_keys));
+            } else if (typeof data == "function") {
+                var data = data(function(data) {
+                    // our callback function
+                    attachRowsCallback($parent, getRowData(data, col_keys));
+                });
+                if (typeof data != "undefined") {
+                    attachRowsCallback($parent, getRowData(data, col_keys));
+                }
+            } else if (data && data.length !== 0) {
+                throw new Error("data should be array or function")
+            }
+            attachRowsCallback($parent, []);
+        };
 
         showLoading();
 
@@ -134,11 +130,11 @@
                     theadTr.append("<th "+_class+">"+header[key].html+"</th>");
                 });
                 thead.html(theadTr);
-                getRows(options.rows, col_keys, attachRowsCallback);
+                attachRows(options.rows, col_keys, tbody);
             }
         } else {
             // Without header
-            getRows(options.rows, col_keys, attachRowsCallback);
+            attachRows(options.rows, col_keys, tbody);
         }
 
         // Attach class
