@@ -50,7 +50,19 @@ describe("$.prototype.filetable", function() {
 
         it("class", function() {
             options.class.split(" ").forEach(function(className) {
-                $el.hasClass(className).should.be.true;
+                $el.fileTable.hasClass(className).should.be.true;
+            });
+        });
+
+        describe("loading", function() {
+            it("true (default): shows loading message", function() {
+                $el.find("."+$el.fileTableOptions.loading.class).length.should.be.ok;
+            });
+            it("false: doesn't show loading message", function() {
+                var opts = _.clone(options);
+                opts.loading = false;
+                $el.filetable(opts);
+                $el.find("."+$el.fileTableOptions.loading.class).length.should.be.not.ok;
             });
         });
 
@@ -78,6 +90,9 @@ describe("$.prototype.filetable", function() {
         });
 
         describe("rows", function() {
+
+
+            this.timeout(1000);
 
             before(function() {
                 options.rows = [
@@ -116,13 +131,25 @@ describe("$.prototype.filetable", function() {
                 });
             });
 
-            it("of type function", function() {
+            it("of type function that returns data", function() {
                 var opts = _.clone(options);
                 opts.rows = function() {
                     return options.rows;
                 }
                 $el.filetable(opts);
                 confirmDataOptionObject();
+            });
+
+            it("of type function that returns callback", function(done) {
+                var opts = _.clone(options);
+                opts.rows = function(callback) {
+                    _.delay(function() {
+                        callback(options.rows);
+                        $el.find("table tbody tr:not('."+$el.fileTableOptions.loading.class+"')").length.should.be.ok;
+                        done();
+                    }, 500);
+                }
+                $el.filetable(opts);
             });
 
         });
