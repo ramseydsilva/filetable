@@ -127,7 +127,7 @@ describe("$.prototype.filetable", function() {
 
         });
 
-        describe("render", function() {
+        describe("onRenderRow", function() {
 
             var opts, lastRow;
             before(function() {
@@ -135,13 +135,13 @@ describe("$.prototype.filetable", function() {
                 opts.rows.push({
                     name: "Bla", alias: "", operator: ""
                 });
-                opts.render = sinon.stub();
+                opts.onRenderRow = sinon.stub();
                 $el.filetable(opts);
-                opts.render.withArgs($el.find("tbody tr"));
+                opts.onRenderRow.withArgs($el.find("tbody tr"));
             });
 
             it ("called when rendering each row, with row element as first argument", function() {
-                opts.render.callCount.should.be.eql(opts.rows.length);
+                opts.onRenderRow.callCount.should.be.eql(opts.rows.length);
             });
 
         });

@@ -98,7 +98,7 @@
             }
 
             if (rows && rows.length > 0) {
-                attachRows(tbody, rows, options.render);
+                attachRows(tbody, rows, options.onRenderRow);
             }
 
             // Attach class
