@@ -1,0 +1,27 @@
+{
+  "name": "filetable",
+  "version": "1.0.0",
+  "description": "Jquery file table widget",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ramseydsilva/filetable.git"
+  },
+  "keywords": [
+    "filetable",
+    "table",
+    "html",
+    "javascript",
+    "jquery",
+    "css"
+  ],
+  "author": "Ramsey D'silva",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ramseydsilva/filetable/issues"
+  },
+  "homepage": "https://github.com/ramseydsilva/filetable"
+}
