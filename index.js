@@ -90,11 +90,11 @@
                         }
                         thead.append("<tr><th "+_class+">"+header[key].html+"</th></tr>");
                     });
-                    rows = getRows(options.data, col_keys);
+                    rows = getRows(options.rows, col_keys);
                 }
             } else {
                 // Without header
-                rows = getRows(options.data);
+                rows = getRows(options.rows);
             }
 
             if (rows && rows.length > 0) {

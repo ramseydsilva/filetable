@@ -77,18 +77,18 @@ describe("$.prototype.filetable", function() {
             });
         });
 
-        describe("data", function() {
+        describe("rows", function() {
 
             before(function() {
-                options.data = [
+                options.rows = [
                     {name: "Ramsey", alias: "Superman", operator: "Kryptonite"}
                 ];
                 $el.filetable(options);
             });
 
             var confirmDataOptionObject = function() {
-                $el.find("tbody tr").length.should.be.eql(options.data.length);
-                options.data.forEach(function(data, index) {
+                $el.find("tbody tr").length.should.be.eql(options.rows.length);
+                options.rows.forEach(function(data, index) {
                     var $row = $($el.find("table tbody tr")[index]);
                     $row.find("td").length.should.be.eql(col_keys.length);
                     _.keys(data).forEach(function(key) {
@@ -104,10 +104,10 @@ describe("$.prototype.filetable", function() {
             it("with no header option and of type array of arrays", function() {
                 var opts = _.clone(options);
                 delete opts.header;
-                opts.data = [["Ramsey", "Superman", "Kryptonite"]];
+                opts.rows = [["Ramsey", "Superman", "Kryptonite"]];
                 $el.filetable(opts);
-                $el.find("tbody tr").length.should.be.eql(opts.data.length);
-                opts.data.forEach(function(data, index) {
+                $el.find("tbody tr").length.should.be.eql(opts.rows.length);
+                opts.rows.forEach(function(data, index) {
                     var $row = $($el.find("table tbody tr")[index]);
                     $row.find("td").length.should.be.eql(data.length);
                     data.forEach(function(col) {
@@ -118,8 +118,8 @@ describe("$.prototype.filetable", function() {
 
             it("of type function", function() {
                 var opts = _.clone(options);
-                opts.data = function() {
-                    return options.data;
+                opts.rows = function() {
+                    return options.rows;
                 }
                 $el.filetable(opts);
                 confirmDataOptionObject();
@@ -132,7 +132,7 @@ describe("$.prototype.filetable", function() {
             var opts, lastRow;
             before(function() {
                 opts = _.clone(options);
-                opts.data.push({
+                opts.rows.push({
                     name: "Bla", alias: "", operator: ""
                 });
                 opts.render = sinon.stub();
@@ -141,7 +141,7 @@ describe("$.prototype.filetable", function() {
             });
 
             it ("called when rendering each row, with row element as first argument", function() {
-                opts.render.callCount.should.be.eql(opts.data.length);
+                opts.render.callCount.should.be.eql(opts.rows.length);
             });
 
         });
