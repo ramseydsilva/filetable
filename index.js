@@ -1,7 +1,25 @@
-var $ = require('jquery');
 
-$.prototype.filetable = function(options) {
-    return this;
-};
+(function(root, factory) {
 
-module.exports = $;
+    if (typeof define === 'function' && define.amd) {
+        define(['underscore', 'jquery', 'exports'], function(_, $, exports) {
+            root.Filetable = factory(root, exports, _, $);
+        });
+
+    } else if (typeof exports !== 'undefined') {
+        var _ = require('underscore'), $;
+        try { $ = require('jquery'); } catch(e) {}
+        factory(root, exports, _, $);
+
+    } else {
+        root.Filetable = factory(root, {}, root._, (root.jQuery || root.$));
+    }
+}(this, function(root, Filetable, _, $) {
+
+    $.prototype.filetable = function(options) {
+        return this;
+    };
+
+    return Filetable;
+
+}));
