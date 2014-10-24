@@ -4,7 +4,7 @@
   "description": "Jquery file table widget",
   "main": "index.js",
   "scripts": {
-    "tests/index": "npm test"
+    "test": "./node_modules/.bin/mocha tests"
   },
   "repository": {
     "type": "git",
