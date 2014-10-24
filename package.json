@@ -4,7 +4,7 @@
   "description": "Jquery file table widget",
   "main": "index.js",
   "scripts": {
-    "test": "npm test"
+    "tests/index": "npm test"
   },
   "repository": {
     "type": "git",
@@ -23,5 +23,14 @@
   "bugs": {
     "url": "https://github.com/ramseydsilva/filetable/issues"
   },
-  "homepage": "https://github.com/ramseydsilva/filetable"
+  "homepage": "https://github.com/ramseydsilva/filetable",
+  "devDependencies": {
+    "jsdom": "^1.0.3",
+    "mocha": "^2.0.1",
+    "should": "^4.1.0"
+  },
+  "dependencies": {
+    "jquery": "^2.1.1",
+    "underscore": "^1.7.0"
+  }
 }
