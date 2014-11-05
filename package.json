@@ -27,6 +27,7 @@
   "devDependencies": {
     "jsdom": "^1.0.3",
     "mocha": "^2.0.1",
+    "requirejs": "^2.1.15",
     "should": "^4.1.0",
     "sinon": "^1.10.3"
   },

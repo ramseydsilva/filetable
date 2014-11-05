@@ -18,21 +18,32 @@
 
     $.prototype.filetable = function(options) {
 
-        var defaultIcons = {
-            folderOpen: "<i class='fa fa-folder-o'></i>",
-            folder: "<i class='fa fa-folder'></i>",
-            file: "<i class='fa fa-file-o'></i>"
-        };
-
         options = _.defaults(options || {}, {
             loading: {
                 class: "loading",
                 html: "Loading ..."
             },
-            icons: defaultIcons,
             class: "filetable",
             rows: []
         });
+
+        var defaultIcons = {
+            folderOpen: '<i class="fa fa-folder-o"></i>',
+            folder: '<i class="fa fa-folder"></i>',
+            file: '<i class="fa fa-file-o"></i>',
+            expand: '<i class="fa fa-angle-right"></i>',
+            collapse: '<i class="fa fa-angle-down"></i>',
+            toggle: "<span class='toggle'></span>",
+            indent: '<i class="indent">&nbsp;</i>'
+        };
+
+        var defaultClasses = {
+            invisible: "invisible",
+            hidden: "hidden"
+        };
+
+        options.icons = _.defaults(options.icon || {}, defaultIcons);
+        options.classes = _.defaults(options.classes || {}, defaultClasses);
 
         var that = this,
             table = $("<table class='"+options.class+"'><thead></thead><tbody></tbody></table>"),
@@ -43,22 +54,95 @@
             loadingHtml,
             col_keys;
 
-        var appendRow = function(cols, hasChildren) {
-            var row = $("<tr></tr>");
-            var firstRow = true;
-            cols.forEach(function(col) {
-                var td = "<td>";
-                if (firstRow) {
-                    td += hasChildren ? options.icons.folder : options.icons.file;
-                    firstRow = false;
-                }
-                td += col+"</td>";
-                row.append(td);
+        var hideRecursive = function($row) {
+            $row.$children.forEach(function($child) {
+                $child.hide() && hideRecursive($child);
             });
-            return row;
         };
 
-        var getRowData = function(data, col_keys) {
+        var showRecursive = function($row) {
+            var expanded = $row.expanded;
+            expanded && $row.$children.forEach(function($child) {
+                $child.show() && showRecursive($child);
+            });
+        };
+
+        var getRowElement = function($parent, cols) {
+            var $row = $("<tr></tr>");
+            var firstRow = true;
+            var notExpandedYet = true;
+            $row.row = cols.row;
+            $row.$children = [];
+            if (!$parent.$children) $parent.$children = [];
+            $row.expanded = false;
+            $row.refresh = function() {}
+            $row.delete = function() {}
+            $parent.$children.push($row);
+            $row.$parent = $parent;
+            if (!$parent.numParents && $parent.numParents !== 0) {
+                $row.numParents = 0;
+            } else {
+                $row.numParents = $parent.numParents + 1;
+            }
+
+            cols.forEach(function(colHtml) {
+                var td = "<td>", $expand, $collapse;
+                if (firstRow) {
+
+                    // put indent
+                    for (var i=1; i <= $row.numParents; i++) {
+                        td += options.icons.indent;
+                    }
+
+                    if (options.icons.expand && options.icons.collapse) {
+                        $row.$expand = $(options.icons.expand);
+                        $row.$collapse = $(options.icons.collapse);
+
+                        $row.expand = function() {
+                            $row.$expand.detach();
+                            $row.$toggle.html($row.$collapse);
+                            attachRows($row, $row.row.rows);
+                            $row.expanded = true;
+                            showRecursive($row);
+                        }
+
+                        $row.collapse = function() {
+                            $row.$collapse.detach();
+                            $row.$toggle.html($row.$expand);
+                            hideRecursive($row);
+                            $row.expanded = false;
+                        }
+                        // toggle
+                        td += options.icons.toggle;
+                    }
+
+                    if (cols.row.rows) {
+                        if (options.icons.folder) td += options.icons.folder;
+                    } else {
+                        if (options.icons.file) td += options.icons.file;
+                    }
+
+                }
+
+                td += colHtml + "</td>";
+                $row.append(td);
+
+                if (firstRow) {
+                    $row.$toggle = $($row.find(".toggle"));
+                    if (!$row.row.rows) $row.$toggle.addClass(options.classes.invisible);
+                    $row.$toggle.prepend($row.$expand);
+                    $row.$expand.on("click", $row.expand);
+                    $row.$collapse.on("click", $row.collapse);
+                    firstRow = false;
+                }
+
+            });
+
+            return $row;
+
+        };
+
+        var getRowData = function(data) {
             var rows = [];
             data && data.length > 0 && data.forEach(function(rowData) {
                 if (typeof rowData == "object") {
@@ -72,7 +156,7 @@
                         row = _.values(rowData);
                         colspan = row.length;
                     }
-                    row.rows = rowData.rows; // attach child rows
+                    row.row = rowData;
                     rows.push(row);
                 } else {
                     throw new Error("data should contain object or array");
@@ -97,35 +181,32 @@
             if (rows && rows.length > 0) {
                 rows.forEach(function(row) {
                     hideLoading();
-                    var $row = appendRow(row, !!row.rows);
-                    $parent.append($row);
-                    if (typeof options.onRenderRow == "function") {
-                        options.onRenderRow.apply(this, $row);
+                    var $rowEl = getRowElement($parent, row);
+                    if ($parent.numParents >= 0) {
+                        $parent.after($rowEl); // rows are reversed
+                    } else {
+                        $parent.prepend($rowEl); // rows are reversed
                     }
+                    options.onRenderRow && options.onRenderRow($rowEl);
                 });
             } else {
                 // TODO: No data message
             }
         }
 
-        var attachRows = function(data, col_keys, $parent) {
+        var attachRows = function($parent, data) {
             if (typeof data == "object" && data.length > 0) {
-                attachRowsCallback($parent, getRowData(data, col_keys));
+                attachRowsCallback($parent, getRowData(data));
             } else if (typeof data == "function") {
-                var data = data(function(data) {
-                    // our callback function
-                    attachRowsCallback($parent, getRowData(data, col_keys));
+                var returnData = data(function(data) {
+                    attachRowsCallback($parent, getRowData(data));
                 });
-                if (typeof data != "undefined") {
-                    attachRowsCallback($parent, getRowData(data, col_keys));
-                }
-            } else if (data && data.length !== 0) {
-                throw new Error("data should be array or function")
+                returnData && attachRowsCallback($parent, getRowData(returnData));
             }
             attachRowsCallback($parent, []);
         };
 
-        showLoading();
+        options.data && showLoading();
 
         // Creates header
         if (typeof options.header == "object") {
@@ -142,11 +223,11 @@
                     theadTr.append("<th "+_class+">"+header[key].html+"</th>");
                 });
                 thead.html(theadTr);
-                attachRows(options.rows, col_keys, tbody);
+                attachRows(tbody, options.rows);
             }
         } else {
             // Without header
-            attachRows(options.rows, col_keys, tbody);
+            attachRows(tbody, options.rows);
         }
 
         this.fileTableOptions = options;
